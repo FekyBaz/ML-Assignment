@@ -30,24 +30,24 @@ X_test_scaled = scaler.transform(X_test)
 k_values = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
 results = []
 for k in k_values:
-   knn = KNeighborsClassifier(n_neighbors=k)
-   knn.fit(X_train_scaled, y_train)
-   y_pred = knn.predict(X_val_scaled)
-   results.append({
-       'k': k,
-       'accuracy': accuracy_score(y_val, y_pred),
-       'precision': precision_score(y_val, y_pred),
-       'recall': recall_score(y_val, y_pred),
-       'f1_score': f1_score(y_val, y_pred)
-   })
-   print(f"k = {k}:")
-   print(f"  Accuracy: {accuracy_score(y_val, y_pred):.4f}")
-   print(f"  Precision: {precision_score(y_val, y_pred):.4f}")
-   print(f"  Recall: {recall_score(y_val, y_pred):.4f}")
-   print(f"  F1-Score: {f1_score(y_val, y_pred):.4f}")
-   print("  Confusion Matrix:")
-   print(confusion_matrix(y_val, y_pred))
-   print()
+    knn = KNeighborsClassifier(n_neighbors=k)
+    knn.fit(X_train_scaled, y_train)
+    y_pred = knn.predict(X_val_scaled)
+    results.append({
+        'k': k,
+        'accuracy': accuracy_score(y_val, y_pred),
+        'precision': precision_score(y_val, y_pred),
+        'recall': recall_score(y_val, y_pred),
+        'f1_score': f1_score(y_val, y_pred)
+    })
+    print(f"k = {k}:")
+    print(f"  Accuracy: {accuracy_score(y_val, y_pred):.4f}")
+    print(f"  Precision: {precision_score(y_val, y_pred):.4f}")
+    print(f"  Recall: {recall_score(y_val, y_pred):.4f}")
+    print(f"  F1-Score: {f1_score(y_val, y_pred):.4f}")
+    print("  Confusion Matrix:")
+    print(confusion_matrix(y_val, y_pred))
+    print()
 # 7. Selecting the best K
 best_k_index = np.argmax([r['accuracy'] for r in results])
 best_k = k_values[best_k_index]
