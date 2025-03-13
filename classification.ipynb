@@ -1,0 +1,95 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+# 1. Loading the data
+column_names = ['fLength', 'fWidth', 'fSize', 'fConc', 'fConc1', 'fAsym', 'fM3Long', 'fM3Trans', 'fAlpha', 'fDist', 'class']
+df = pd.read_csv("magic04.data", names=column_names)
+# 2. Converting class labels to numeric values
+class_mapping = {'g': 1, 'h': 0}
+df['class'] = df['class'].map(class_mapping)
+# 3. Balancing the data
+class_0 = df[df['class'] == 0]
+class_1 = df[df['class'] == 1].sample(len(class_0), random_state=42)
+balanced_df = pd.concat([class_0, class_1]).sample(frac=1, random_state=42)
+# 4. Splitting the data
+X = balanced_df.drop(columns=['class'])
+y = balanced_df['class']
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+# 5. Standardizing the values using StandardScaler
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_val_scaled = scaler.transform(X_val)
+X_test_scaled = scaler.transform(X_test)
+# 6. Testing multiple values of K
+k_values = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+results = []
+for k in k_values:
+   knn = KNeighborsClassifier(n_neighbors=k)
+   knn.fit(X_train_scaled, y_train)
+   y_pred = knn.predict(X_val_scaled)
+   results.append({
+       'k': k,
+       'accuracy': accuracy_score(y_val, y_pred),
+       'precision': precision_score(y_val, y_pred),
+       'recall': recall_score(y_val, y_pred),
+       'f1_score': f1_score(y_val, y_pred)
+   })
+   print(f"k = {k}:")
+   print(f"  Accuracy: {accuracy_score(y_val, y_pred):.4f}")
+   print(f"  Precision: {precision_score(y_val, y_pred):.4f}")
+   print(f"  Recall: {recall_score(y_val, y_pred):.4f}")
+   print(f"  F1-Score: {f1_score(y_val, y_pred):.4f}")
+   print("  Confusion Matrix:")
+   print(confusion_matrix(y_val, y_pred))
+   print()
+# 7. Selecting the best K
+best_k_index = np.argmax([r['accuracy'] for r in results])
+best_k = k_values[best_k_index]
+print(f"Best k value: {best_k} with validation accuracy: {results[best_k_index]['accuracy']:.4f}")
+# 8. Training the final model and evaluating it
+knn_best = KNeighborsClassifier(n_neighbors=best_k)
+knn_best.fit(X_train_scaled, y_train)
+y_test_pred = knn_best.predict(X_test_scaled)
+# 9. Printing the final evaluation
+print("\nFinal KNN Model Performance on Test Set:")
+print(f"Accuracy: {accuracy_score(y_test, y_test_pred):.4f}")
+print(f"Precision: {precision_score(y_test, y_test_pred):.4f}")
+print(f"Recall: {recall_score(y_test, y_test_pred):.4f}")
+print(f"F1-Score: {f1_score(y_test, y_test_pred):.4f}")
+print("Confusion Matrix:")
+sns.heatmap(confusion_matrix(y_test, y_test_pred), annot=True, fmt='d', cmap='Blues')
+plt.show()
+# 10. Plotting performance for all K values
+plt.figure(figsize=(12, 8))
+plt.subplot(2, 2, 1)
+plt.plot(k_values, [r['accuracy'] for r in results], marker='o')
+plt.title('Accuracy vs k')
+plt.xlabel('k')
+plt.ylabel('Accuracy')
+plt.grid(True)
+plt.subplot(2, 2, 2)
+plt.plot(k_values, [r['precision'] for r in results], marker='o')
+plt.title('Precision vs k')
+plt.xlabel('k')
+plt.ylabel('Precision')
+plt.grid(True)
+plt.subplot(2, 2, 3)
+plt.plot(k_values, [r['recall'] for r in results], marker='o')
+plt.title('Recall vs k')
+plt.xlabel('k')
+plt.ylabel('Recall')
+plt.grid(True)
+plt.subplot(2, 2, 4)
+plt.plot(k_values, [r['f1_score'] for r in results], marker='o')
+plt.title('F1 Score vs k')
+plt.xlabel('k')
+plt.ylabel('F1 Score')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
